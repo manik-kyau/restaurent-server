@@ -8,7 +8,7 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.jm3t3oc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 // console.log(uri);
 
@@ -27,10 +27,44 @@ async function run() {
     // await client.connect();
 
     const menuCollection = client.db("bistroDB").collection("menu");
+    const reviewCollection = client.db("bistroDB").collection("reviews");
+    const cardCollection = client.db("bistroDB").collection("cards");
 
     app.get('/menu',async(req,res)=>{
         const result = await menuCollection.find().toArray();
         res.send(result)
+    })
+
+    app.get('/reviews',async(req,res)=>{
+        const result = await reviewCollection.find().toArray();
+        res.send(result)
+    })
+
+    app.get('/carts',async(req,res)=>{
+      const email = req.query.email;
+      const query = {email: email};
+      const result = await cardCollection.find(query).toArray();
+      res.send(result);
+    })
+
+    // Carts collection
+    app.post('/carts',async(req,res)=>{
+      const cartItem = req.body;
+      console.log(cartItem);
+      const result = await cardCollection.insertOne(cartItem);
+      res.send(result)
+    }) 
+
+    // app.get('/cart/:id', async(req,res)=>{
+
+    // })
+
+    // delete cart item
+    app.delete('/carts/:id',async(req,res)=>{
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await cardCollection.deleteOne(query);
+      res.send(result);
     })
 
 
